@@ -105,4 +105,26 @@ describe('api verify', () => {
       { slug: 'owner/frozen', reason: 'missing source in lockfile' },
     ])
   })
+
+  it('does not read outside the skills directory for a traversal slug', async () => {
+    const projectDir = join(tempDir, 'traversal-project')
+    const outsideDir = join(projectDir, 'evil-outside')
+    await mkdir(outsideDir, { recursive: true })
+    await writeFile(join(outsideDir, 'SECRET.md'), 'should-not-be-read\n')
+    await writeLock(projectDir, {
+      '../../evil-outside': {
+        source: 'evil/repo',
+        agents: ['project'],
+        contentSha: 'deadbeef',
+      },
+    })
+
+    const result = await apiVerify(projectDir)
+
+    assert.equal(result.allPassed, false)
+    assert.equal(result.totalFailed, 1)
+    assert.equal(result.failed[0].slug, '../../evil-outside')
+    assert.match(result.failed[0].reason, /unsafe slug/)
+    assert.equal(result.verified.length, 0)
+  })
 })
