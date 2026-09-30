@@ -88,9 +88,7 @@ export async function apiVerify(cwd = process.cwd(), frozen = false) {
           }
         }
         const dirFn = agentDirMap[name]
-        return dirFn
-          ? { baseDir: dirFn(), dir: join(dirFn(), normSlug) }
-          : null
+        return dirFn ? { baseDir: dirFn(), dir: join(dirFn(), normSlug) } : null
       })
       .filter(Boolean)
 
